@@ -104,7 +104,6 @@ public class ZKManager{
 		}
 		else{
 			log.info("tb_hj_schedule 会话有其他状态的值，event.getState() ="+event.getState() +", event  value="+event.toString());
-			connectionLatch.countDown();
 		}
 	}
 	
