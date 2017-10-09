@@ -1,5 +1,11 @@
 package com.taobao.pamirs.schedule.test;
 
+import com.taobao.pamirs.schedule.IScheduleTaskDealSingle;
+import com.taobao.pamirs.schedule.TaskItemDefine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,16 +14,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.sql.DataSource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.taobao.pamirs.schedule.IScheduleTaskDealSingle;
-import com.taobao.pamirs.schedule.TaskItemDefine;
-
 /**
- * µ¥¸öÈÎÎñ´¦ÀíÊµÏÖ
+ * å•ä¸ªä»»åŠ¡å¤„ç†å®ç°
  * 
  * @author xuannan
  * 
@@ -71,7 +69,7 @@ public class DBDemoSingle implements	IScheduleTaskDealSingle<Long> {
 						+ condition.toString() + ") and sts ='N' LIMIT "
 						+ fetchNum;
 			} else {
-				throw new Exception("²»Ö§³ÖµÄÊı¾İ¿âÀàĞÍ£º" + dbType);
+				throw new Exception("ä¸æ”¯æŒçš„æ•°æ®åº“ç±»å‹ï¼š" + dbType);
 			}
 			PreparedStatement statement = conn.prepareStatement(sql);
 			ResultSet set = statement.executeQuery();
@@ -99,10 +97,10 @@ public class DBDemoSingle implements	IScheduleTaskDealSingle<Long> {
 			statement.executeUpdate();
 			statement.close();
 			conn.commit();
-			log.debug("´¦ÀíÈÎÎñ£º" + id + " ³É¹¦£¡");
+			log.debug("å¤„ç†ä»»åŠ¡ï¼š" + id + " æˆåŠŸï¼");
 			return true;
 		} catch (Exception e) {
-			log.error("Ö´ĞĞÈÎÎñ£º" + task + "Ê§°Ü£º" + e.getMessage(), e);
+			log.error("æ‰§è¡Œä»»åŠ¡ï¼š" + task + "å¤±è´¥ï¼š" + e.getMessage(), e);
 			if (conn != null) {
 				conn.rollback();
 			}

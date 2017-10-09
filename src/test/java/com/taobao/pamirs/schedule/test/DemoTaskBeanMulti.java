@@ -1,18 +1,17 @@
 package com.taobao.pamirs.schedule.test;
 
+import com.taobao.pamirs.schedule.IScheduleTaskDealMulti;
+import com.taobao.pamirs.schedule.TaskItemDefine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.taobao.pamirs.schedule.IScheduleTaskDealMulti;
-import com.taobao.pamirs.schedule.TaskItemDefine;
-
 /**
- * 单个任务处理实现
+ * 鍗曚釜浠诲姟澶勭悊瀹炵幇
  * 
  * @author xuannan
  * 
@@ -37,7 +36,7 @@ public class DemoTaskBeanMulti implements IScheduleTaskDealMulti<Long> {
 		List<Long> result = new ArrayList<Long>();
 		int num = fetchNum / queryCondition.size();
 		Random random = new Random(System.currentTimeMillis());
-		String message = "获取数据...[ownSign=" + ownSign + ",taskParameter=\"" + taskParameter +"\"]:";
+		String message = "鑾峰彇鏁版嵁...[ownSign=" + ownSign + ",taskParameter=\"" + taskParameter +"\"]:";
 		boolean isFirst = true;
 		for (TaskItemDefine s : queryCondition) {
 			long taskItem = Long.parseLong(s.getTaskItemId()) * 10000000L;
@@ -56,7 +55,7 @@ public class DemoTaskBeanMulti implements IScheduleTaskDealMulti<Long> {
 	}
 	public boolean execute(Long[] tasks, String ownSign) throws Exception {
 		Thread.sleep(50);
-		//log.info("处理任务["+ownSign+"]:" + task);
+		//log.info("澶勭悊浠诲姟["+ownSign+"]:" + task);
 		return true;
 	}
 	

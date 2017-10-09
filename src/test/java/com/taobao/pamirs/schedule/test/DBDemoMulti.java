@@ -1,5 +1,11 @@
 package com.taobao.pamirs.schedule.test;
 
+import com.taobao.pamirs.schedule.IScheduleTaskDealMulti;
+import com.taobao.pamirs.schedule.TaskItemDefine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,16 +14,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.sql.DataSource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.taobao.pamirs.schedule.IScheduleTaskDealMulti;
-import com.taobao.pamirs.schedule.TaskItemDefine;
-
 /**
- * Åú´¦ÀíÊµÏÖ
+ * æ‰¹å¤„ç†å®ç°
  * 
  * @author xuannan
  * 
@@ -71,7 +69,7 @@ public class DBDemoMulti implements	IScheduleTaskDealMulti<Long> {
 						+ condition.toString() + ") and sts ='N' LIMIT "
 						+ fetchNum;
 			} else {
-				throw new Exception("²»Ö§³ÖµÄÊı¾İ¿âÀàĞÍ£º" + dbType);
+				throw new Exception("ä¸æ”¯æŒçš„æ•°æ®åº“ç±»å‹ï¼š" + dbType);
 			}
 			PreparedStatement statement = conn.prepareStatement(sql);
 			ResultSet set = statement.executeQuery();
@@ -96,7 +94,7 @@ public class DBDemoMulti implements	IScheduleTaskDealMulti<Long> {
 			conn = dataSource.getConnection();
 			for (int index = 0; index < tasks.length; index++) {
 				id = ((Long) tasks[index]).longValue();
-				log.debug("´¦ÀíÈÎÎñ£º" + id + " ³É¹¦£¡");
+				log.debug("å¤„ç†ä»»åŠ¡ï¼š" + id + " æˆåŠŸï¼");
 				String sql = "update SCHEDULE_TEST SET STS ='Y' ,DEAL_COUNT = DEAL_COUNT + 1 WHERE ID = ? and STS ='N' ";
 				PreparedStatement statement = conn.prepareStatement(sql);
 				statement.setLong(1, id);
@@ -105,7 +103,7 @@ public class DBDemoMulti implements	IScheduleTaskDealMulti<Long> {
 			}
 			conn.commit();
 		} catch (Exception e) {
-			log.error("Ö´ĞĞÈÎÎñ£º" + id + "Ê§°Ü£º" + e.getMessage(), e);
+			log.error("æ‰§è¡Œä»»åŠ¡ï¼š" + id + "å¤±è´¥ï¼š" + e.getMessage(), e);
 			if (conn != null) {
 				conn.rollback();
 			}
@@ -115,7 +113,7 @@ public class DBDemoMulti implements	IScheduleTaskDealMulti<Long> {
 				conn.close();
 			}
 		}
-		// System.out.println("´¦ÀíÈÎÎñ£º" + tasks.length);
+		// System.out.println("å¤„ç†ä»»åŠ¡ï¼š" + tasks.length);
 		return true;
 	}
 

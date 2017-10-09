@@ -1,15 +1,14 @@
 package com.taobao.pamirs.schedule.test;
 
 
+import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
 import org.junit.Test;
 import org.unitils.UnitilsJUnit4;
 import org.unitils.spring.annotation.SpringApplicationContext;
 import org.unitils.spring.annotation.SpringBeanByName;
 
-import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
-
 /**
- * µ÷¶È²âÊÔ
+ * è°ƒåº¦æµ‹è¯•
  * @author xuannan
  *
  */

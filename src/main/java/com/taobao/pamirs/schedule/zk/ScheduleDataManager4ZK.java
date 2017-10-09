@@ -1,25 +1,5 @@
 package com.taobao.pamirs.schedule.zk;
 
-import java.lang.reflect.Type;
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.data.Stat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -36,6 +16,28 @@ import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskTypeRunningInfo;
+import org.apache.commons.lang.StringUtils;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Type;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ScheduleDataManager4ZK implements IScheduleDataManager {
 	private static transient Logger log = LoggerFactory.getLogger(ScheduleDataManager4ZK.class);
@@ -157,6 +159,19 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		return stat.getVersion();
 
     }
+	public Map<String ,Stat> getCurrentServerStatList(String taskType) throws Exception{
+		Map<String ,Stat> statMap=new HashMap<String ,Stat>();
+		String baseTaskType = ScheduleUtil.splitBaseTaskTypeFromTaskType(taskType);
+		String zkPath = this.PATH_BaseTaskType + "/" + baseTaskType
+				+ "/" + taskType + "/" + this.PATH_Server;
+		List<String> childs=this.getZooKeeper().getChildren(zkPath, false);
+		for(String serv :childs){
+			String singleServ = zkPath + "/" + serv;
+			Stat servStat= this.getZooKeeper().exists(singleServ, false);
+			statMap.put(serv,servStat);
+		}
+		return statMap;
+	}
     public long getReloadTaskItemFlag(String taskType) throws Exception{
     	String baseTaskType = ScheduleUtil.splitBaseTaskTypeFromTaskType(taskType);
 		String zkPath = this.PATH_BaseTaskType + "/" + baseTaskType 
@@ -392,7 +407,27 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		 String zkPath = this.PATH_BaseTaskType + "/" + baseTaskType + "/" + taskType + "/" + this.PATH_TaskItem;
 		 
 		 List<String> taskItems = this.getZooKeeper().getChildren(zkPath, false);
-		 Collections.sort(taskItems);
+        //       Collections.sort(taskItems);
+//       有些任务分片，业务方其实是用数字的字符串排序的。优先以字符串方式进行排序
+        Collections.sort(taskItems,new Comparator<String>(){
+            public int compare(String u1, String u2) {
+                if(StringUtils.isNumeric(u1) && StringUtils.isNumeric(u2)){
+                    int iU1= Integer.parseInt(u1);
+                    int iU2= Integer.parseInt(u2);
+                    if(iU1==iU2){
+                        return 0 ;
+                    }else if(iU1>iU2){
+                        return 1 ;
+                    }else{
+                        return -1;
+                    }
+                }else{
+                    return u1.compareTo(u2);
+                }
+            }
+        });
+
+        log.debug(taskType+ " current uid="+uuid+" , zk  reloadDealTaskItem");
 		 
 		 List<TaskItemDefine> result = new ArrayList<TaskItemDefine>();
 		 for(String name:taskItems){
@@ -406,9 +441,9 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 				}
 				result.add(item);
 			}else if(value != null && uuid.equals(new String(value))==false){
-				log.debug(" current uid="+uuid+" , zk cur_server uid="+new String(value));
+				log.trace(" current uid="+uuid+" , zk cur_server uid="+new String(value));
 			}else  {
-				log.debug(" current uid="+uuid);
+				log.trace(" current uid="+uuid);
 			}
 		 }
 		 return result;

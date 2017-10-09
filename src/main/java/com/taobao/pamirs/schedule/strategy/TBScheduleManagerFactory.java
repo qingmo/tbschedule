@@ -1,5 +1,20 @@
 package com.taobao.pamirs.schedule.strategy;
 
+import com.taobao.pamirs.schedule.ConsoleManager;
+import com.taobao.pamirs.schedule.IScheduleTaskDeal;
+import com.taobao.pamirs.schedule.ScheduleUtil;
+import com.taobao.pamirs.schedule.taskmanager.IScheduleDataManager;
+import com.taobao.pamirs.schedule.taskmanager.TBScheduleManagerStatic;
+import com.taobao.pamirs.schedule.zk.ScheduleDataManager4ZK;
+import com.taobao.pamirs.schedule.zk.ScheduleStrategyDataManager4ZK;
+import com.taobao.pamirs.schedule.zk.ZKManager;
+import org.apache.zookeeper.ZooKeeper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,24 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.zookeeper.ZooKeeper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-
-import com.taobao.pamirs.schedule.ConsoleManager;
-import com.taobao.pamirs.schedule.IScheduleTaskDeal;
-import com.taobao.pamirs.schedule.ScheduleUtil;
-import com.taobao.pamirs.schedule.taskmanager.IScheduleDataManager;
-import com.taobao.pamirs.schedule.taskmanager.TBScheduleManagerStatic;
-import com.taobao.pamirs.schedule.zk.ScheduleDataManager4ZK;
-import com.taobao.pamirs.schedule.zk.ScheduleStrategyDataManager4ZK;
-import com.taobao.pamirs.schedule.zk.ZKManager;
-
 /**
- * µ÷¶È·şÎñÆ÷¹¹ÔìÆ÷
+ * è°ƒåº¦æœåŠ¡å™¨æ„é€ å™¨
  * 
  * @author xuannan
  * 
@@ -42,19 +41,19 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 
 
 	/**
-	 * ÊÇ·ñÆô¶¯µ÷¶È¹ÜÀí£¬Èç¹ûÖ»ÊÇ×öÏµÍ³¹ÜÀí£¬Ó¦¸ÃÉèÖÃÎªfalse
+	 * æ˜¯å¦å¯åŠ¨è°ƒåº¦ç®¡ç†ï¼Œå¦‚æœåªæ˜¯åšç³»ç»Ÿç®¡ç†ï¼Œåº”è¯¥è®¾ç½®ä¸ºfalse
 	 */
 	public boolean start = true;
 	private int timerInterval = 2000;
 	/**
-	 * ManagerFactoryTimerTaskÉÏ´ÎÖ´ĞĞµÄÊ±¼ä´Á¡£<br/>
-	 * zk»·¾³²»ÎÈ¶¨£¬¿ÉÄÜµ¼ÖÂËùÓĞtask×ÔÑ­»·¶ªÊ§£¬µ÷¶ÈÍ£Ö¹¡£<br/>
-	 * Íâ²ãÓ¦ÓÃ£¬Í¨¹ıjmx±©Â¶ĞÄÌøÊ±¼ä£¬¼à¿ØÕâ¸ötbschedule×îÖØÒªµÄ´óÑ­»·¡£<br/>
+	 * ManagerFactoryTimerTaskä¸Šæ¬¡æ‰§è¡Œçš„æ—¶é—´æˆ³ã€‚<br/>
+	 * zkç¯å¢ƒä¸ç¨³å®šï¼Œå¯èƒ½å¯¼è‡´æ‰€æœ‰taskè‡ªå¾ªç¯ä¸¢å¤±ï¼Œè°ƒåº¦åœæ­¢ã€‚<br/>
+	 * å¤–å±‚åº”ç”¨ï¼Œé€šè¿‡jmxæš´éœ²å¿ƒè·³æ—¶é—´ï¼Œç›‘æ§è¿™ä¸ªtbscheduleæœ€é‡è¦çš„å¤§å¾ªç¯ã€‚<br/>
 	 */
 	public volatile long timerTaskHeartBeatTS = System.currentTimeMillis();
 	
 	/**
-	 * µ÷¶ÈÅäÖÃÖĞĞÄ¿Í·ş¶Ë
+	 * è°ƒåº¦é…ç½®ä¸­å¿ƒå®¢æœç«¯
 	 */
 	private IScheduleDataManager	scheduleDataManager;
 	private ScheduleStrategyDataManager4ZK scheduleStrategyManager;
@@ -88,7 +87,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	
 	public void reInit(Properties p) throws Exception{
 		if(this.start == true || this.timer != null || this.managerMap.size() >0){
-			throw new Exception("µ÷¶ÈÆ÷ÓĞÈÎÎñ´¦Àí£¬²»ÄÜÖØĞÂ³õÊ¼»¯");
+			throw new Exception("è°ƒåº¦å™¨æœ‰ä»»åŠ¡å¤„ç†ï¼Œä¸èƒ½é‡æ–°åˆå§‹åŒ–");
 		}
 		this.init(p);
 	}
@@ -116,7 +115,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	}
     
     /**
-     * ÔÚZk×´Ì¬Õı³£ºó»Øµ÷Êı¾İ³õÊ¼»¯
+     * åœ¨ZkçŠ¶æ€æ­£å¸¸åå›è°ƒæ•°æ®åˆå§‹åŒ–
      * @throws Exception
      */
 	public void initialData() throws Exception{
@@ -124,7 +123,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 			this.scheduleDataManager = new ScheduleDataManager4ZK(this.zkManager);
 			this.scheduleStrategyManager  = new ScheduleStrategyDataManager4ZK(this.zkManager);
 			if (this.start == true) {
-				// ×¢²áµ÷¶È¹ÜÀíÆ÷
+				// æ³¨å†Œè°ƒåº¦ç®¡ç†å™¨
 				this.scheduleStrategyManager.registerManagerFactory(this);
 				if(timer == null){
 					timer = new Timer("TBScheduleManagerFactory-Timer");
@@ -137,9 +136,8 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	}
 
 	/**
-	 * ´´½¨µ÷¶È·şÎñÆ÷
-	 * @param baseTaskType
-	 * @param ownSign
+	 * åˆ›å»ºè°ƒåº¦æœåŠ¡å™¨
+	 * @param strategy
 	 * @return
 	 * @throws Exception
 	 */
@@ -159,7 +157,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 			    result.initialTaskParameter(strategy.getStrategyName(),strategy.getTaskParameter());
 			}
 		}catch(Exception e ){
-			logger.error("strategy »ñÈ¡¶ÔÓ¦µÄjava or bean ³ö´í,schedule²¢Ã»ÓĞ¼ÓÔØ¸ÃÈÎÎñ,ÇëÈ·ÈÏ" +strategy.getStrategyName(),e);
+			logger.error("strategy è·å–å¯¹åº”çš„java or bean å‡ºé”™,scheduleå¹¶æ²¡æœ‰åŠ è½½è¯¥ä»»åŠ¡,è¯·ç¡®è®¤" +strategy.getStrategyName(),e);
 		}
 		return result;
 	}
@@ -167,7 +165,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	public void refresh() throws Exception {
 		this.lock.lock();
 		try {
-			// ÅĞ¶Ï×´Ì¬ÊÇ·ñÖÕÖ¹
+			// åˆ¤æ–­çŠ¶æ€æ˜¯å¦ç»ˆæ­¢
 			ManagerFactoryInfo stsInfo = null;
 			boolean isException = false;
 			try {
@@ -178,13 +176,13 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 			}
 			if (isException == true) {
 				try {
-					stopServer(null); // Í£Ö¹ËùÓĞµÄµ÷¶ÈÈÎÎñ
+					stopServer(null); // åœæ­¢æ‰€æœ‰çš„è°ƒåº¦ä»»åŠ¡
 					this.getScheduleStrategyManager().unRregisterManagerFactory(this);
 				} finally {
 					reRegisterManagerFactory();
 				}
 			} else if (stsInfo.isStart() == false) {
-				stopServer(null); // Í£Ö¹ËùÓĞµÄµ÷¶ÈÈÎÎñ
+				stopServer(null); // åœæ­¢æ‰€æœ‰çš„è°ƒåº¦ä»»åŠ¡
 				this.getScheduleStrategyManager().unRregisterManagerFactory(
 						this);
 			} else {
@@ -195,7 +193,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 		}
 	}
 	public void reRegisterManagerFactory() throws Exception{
-		//ÖØĞÂ·ÖÅäµ÷¶ÈÆ÷
+		//é‡æ–°åˆ†é…è°ƒåº¦å™¨
 		List<String> stopList = this.getScheduleStrategyManager().registerManagerFactory(this);
 		for (String strategyName : stopList) {
 			this.stopServer(strategyName);
@@ -204,7 +202,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 		this.reRunScheduleServer();
 	}
 	/**
-	 * ¸ù¾İ²ßÂÔÖØĞÂ·ÖÅäµ÷¶ÈÈÎÎñµÄ»úÆ÷
+	 * æ ¹æ®ç­–ç•¥é‡æ–°åˆ†é…è°ƒåº¦ä»»åŠ¡çš„æœºå™¨
 	 * @throws Exception
 	 */
 	public void assignScheduleServer() throws Exception{
@@ -218,7 +216,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 			int[] nums =  ScheduleUtil.assignTaskNumber(factoryList.size(), scheduleStrategy.getAssignNum(), scheduleStrategy.getNumOfSingleServer());
 			for(int i=0;i<factoryList.size();i++){
 				ScheduleStrategyRunntime factory = 	factoryList.get(i);
-				//¸üĞÂÇëÇóµÄ·şÎñÆ÷ÊıÁ¿
+				//æ›´æ–°è¯·æ±‚çš„æœåŠ¡å™¨æ•°é‡
 				this.scheduleStrategyManager.updateStrategyRunntimeReqestNum(run.getStrategyName(), 
 						factory.getUuid(),nums[i]);
 			}
@@ -253,15 +251,15 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 					try {
 						task.stop(run.getStrategyName());
 					} catch (Throwable e) {
-						logger.error("×¢ÏúÈÎÎñ´íÎó£º" + e.getMessage(), e);
+						logger.error("æ³¨é”€ä»»åŠ¡é”™è¯¯ï¼š" + e.getMessage(), e);
 					}
 				}
-		   //²»×ã£¬Ôö¼Óµ÷¶ÈÆ÷
+		   //ä¸è¶³ï¼Œå¢åŠ è°ƒåº¦å™¨
 		   ScheduleStrategy strategy = this.scheduleStrategyManager.loadStrategy(run.getStrategyName());
 		   while(list.size() < run.getRequestNum()){
 			   IStrategyTask result = this.createStrategyTask(strategy);
 			   if(null==result){
-				   logger.error("strategy ¶ÔÓ¦µÄÅäÖÃÓĞÎÊÌâ¡£strategy name="+strategy.getStrategyName());
+				   logger.error("strategy å¯¹åº”çš„é…ç½®æœ‰é—®é¢˜ã€‚strategy name="+strategy.getStrategyName());
 			   }
 			   list.add(result);
 		    }
@@ -269,9 +267,9 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	}
 	
 	/**
-	 * ÖÕÖ¹Ò»ÀàÈÎÎñ
+	 * ç»ˆæ­¢ä¸€ç±»ä»»åŠ¡
 	 * 
-	 * @param taskType
+	 * @param strategyName
 	 * @throws Exception
 	 */
 	public void stopServer(String strategyName) throws Exception {
@@ -282,7 +280,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 					try{
 					  task.stop(strategyName);
 					}catch(Throwable e){
-					  logger.error("×¢ÏúÈÎÎñ´íÎó£º"+e.getMessage(),e);
+					  logger.error("æ³¨é”€ä»»åŠ¡é”™è¯¯ï¼š"+e.getMessage(),e);
 					}
 				}
 				this.managerMap.remove(name);
@@ -294,7 +292,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 					try {
 						task.stop(strategyName);
 					} catch (Throwable e) {
-						logger.error("×¢ÏúÈÎÎñ´íÎó£º" + e.getMessage(), e);
+						logger.error("æ³¨é”€ä»»åŠ¡é”™è¯¯ï¼š" + e.getMessage(), e);
 					}
 				}
 				this.managerMap.remove(strategyName);
@@ -303,7 +301,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 		}			
 	}
 	/**
-	 * Í£Ö¹ËùÓĞµ÷¶È×ÊÔ´
+	 * åœæ­¢æ‰€æœ‰è°ƒåº¦èµ„æº
 	 */
 	public void stopAll() throws Exception {
 		try {
@@ -331,19 +329,19 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 						zk.close();
 					}
 				} catch (Exception e) {
-					logger.warn("zk getZooKeeperÒì³££¡",e);
+					logger.warn("zk getZooKeeperå¼‚å¸¸ï¼",e);
 				}
 			}
 			this.uuid = null;
-			logger.warn("Í£Ö¹·şÎñ³É¹¦£¡");
+			logger.warn("åœæ­¢æœåŠ¡æˆåŠŸï¼");
 		} catch (Throwable e) {
-			logger.error("Í£Ö¹·şÎñÊ§°Ü£º" + e.getMessage(), e);
+			logger.error("åœæ­¢æœåŠ¡å¤±è´¥ï¼š" + e.getMessage(), e);
 		} finally {
 			lock.unlock();
 		}
 	}
 	/**
-	 * ÖØÆôËùÓĞµÄ·şÎñ
+	 * é‡å¯æ‰€æœ‰çš„æœåŠ¡
 	 * @throws Exception
 	 */
 	public void reStart() throws Exception {
@@ -362,7 +360,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 			this.uuid = null;
 			this.init();
 		} catch (Throwable e) {
-			logger.error("ÖØÆô·şÎñÊ§°Ü£º" + e.getMessage(), e);
+			logger.error("é‡å¯æœåŠ¡å¤±è´¥ï¼š" + e.getMessage(), e);
 		}
     }
     public boolean isZookeeperInitialSucess() throws Exception{
@@ -441,7 +439,7 @@ class ManagerFactoryTimerTask extends java.util.TimerTask {
 			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 			if(this.factory.zkManager.checkZookeeperState() == false){
 				if(count > 5){
-				   log.error("ZookeeperÁ¬½ÓÊ§°Ü£¬¹Ø±ÕËùÓĞµÄÈÎÎñºó£¬ÖØĞÂÁ¬½ÓZookeeper·şÎñÆ÷......");
+				   log.error("Zookeeperè¿æ¥å¤±è´¥ï¼Œå…³é—­æ‰€æœ‰çš„ä»»åŠ¡åï¼Œé‡æ–°è¿æ¥ZookeeperæœåŠ¡å™¨......");
 				   this.factory.reStart();
 				  
 				}else{

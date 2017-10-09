@@ -1,5 +1,15 @@
 package com.taobao.pamirs.schedule.zk;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.taobao.pamirs.schedule.strategy.ManagerFactoryInfo;
+import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
+import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRunntime;
+import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooKeeper;
+
 import java.io.Writer;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -8,18 +18,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.taobao.pamirs.schedule.strategy.ManagerFactoryInfo;
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRunntime;
-import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
-
 public class ScheduleStrategyDataManager4ZK{
 	
 	private ZKManager zkManager;
@@ -27,7 +25,7 @@ public class ScheduleStrategyDataManager4ZK{
 	private String PATH_ManagerFactory;
 	private Gson gson ;
 	
-	//ÔÚSpring¶ÔÏó´´½¨Íê±Ïºó£¬´´½¨ÄÚ²¿¶ÔÏó
+	//åœ¨Springå¯¹è±¡åˆ›å»ºå®Œæ¯•åï¼Œåˆ›å»ºå†…éƒ¨å¯¹è±¡
     public ScheduleStrategyDataManager4ZK(ZKManager aZkManager) throws Exception {
     	this.zkManager = aZkManager;
 		gson = new GsonBuilder().registerTypeAdapter(Timestamp.class,new TimestampTypeAdapter()).setDateFormat("yyyy-MM-dd HH:mm:ss").create();		
@@ -59,7 +57,7 @@ public class ScheduleStrategyDataManager4ZK{
 		if ( this.getZooKeeper().exists(zkPath, false) == null) {
 			this.getZooKeeper().create(zkPath, valueString.getBytes(), this.zkManager.getAcl(),CreateMode.PERSISTENT);
 		} else {
-			throw new Exception("µ÷¶È²ßÂÔ" + scheduleStrategy.getStrategyName() + "ÒÑ¾­´æÔÚ,Èç¹ûÈ·ÈÏĞèÒªÖØ½¨£¬ÇëÏÈµ÷ÓÃdeleteMachineStrategy(String taskType)É¾³ı");
+			throw new Exception("è°ƒåº¦ç­–ç•¥" + scheduleStrategy.getStrategyName() + "å·²ç»å­˜åœ¨,å¦‚æœç¡®è®¤éœ€è¦é‡å»ºï¼Œè¯·å…ˆè°ƒç”¨deleteMachineStrategy(String taskType)åˆ é™¤");
 		}
 	}
 
@@ -91,8 +89,8 @@ public class ScheduleStrategyDataManager4ZK{
 	public void deleteMachineStrategy(String taskType,boolean isForce) throws Exception {
 		String zkPath = this.PATH_Strategy + "/" + taskType;
 		if(isForce == false && this.getZooKeeper().getChildren(zkPath,null).size() >0){
-			throw new Exception("²»ÄÜÉ¾³ı"+ taskType +"µÄÔËĞĞ²ßÂÔ£¬»áµ¼ÖÂ±ØĞëÖØÆôÕû¸öÓ¦ÓÃ²ÅÄÜÍ£Ö¹Ê§È¥¿ØÖÆµÄµ÷¶È½ø³Ì¡£" +
-					"¿ÉÒÔÏÈÇå¿ÕIPµØÖ·£¬µÈËùÓĞµÄµ÷¶ÈÆ÷¶¼Í£Ö¹ºóÔÙÉ¾³ıµ÷¶È²ßÂÔ");
+			throw new Exception("ä¸èƒ½åˆ é™¤"+ taskType +"çš„è¿è¡Œç­–ç•¥ï¼Œä¼šå¯¼è‡´å¿…é¡»é‡å¯æ•´ä¸ªåº”ç”¨æ‰èƒ½åœæ­¢å¤±å»æ§åˆ¶çš„è°ƒåº¦è¿›ç¨‹ã€‚" +
+					"å¯ä»¥å…ˆæ¸…ç©ºIPåœ°å€ï¼Œç­‰æ‰€æœ‰çš„è°ƒåº¦å™¨éƒ½åœæ­¢åå†åˆ é™¤è°ƒåº¦ç­–ç•¥");
 		}
 		ZKTools.deleteTree(this.getZooKeeper(),zkPath);
 	}
@@ -108,9 +106,9 @@ public class ScheduleStrategyDataManager4ZK{
 		return result;
 	}
 	/**
-	 * ×¢²áManagerFactory
+	 * æ³¨å†ŒManagerFactory
 	 * @param managerFactory
-	 * @return ĞèÒªÈ«²¿×¢ÏúµÄµ÷¶È£¬ÀıÈçµ±IP²»ÔÚÁĞ±íÖĞ
+	 * @return éœ€è¦å…¨éƒ¨æ³¨é”€çš„è°ƒåº¦ï¼Œä¾‹å¦‚å½“IPä¸åœ¨åˆ—è¡¨ä¸­
 	 * @throws Exception
 	 */
 	public List<String> registerManagerFactory(TBScheduleManagerFactory managerFactory) throws Exception{
@@ -130,11 +128,11 @@ public class ScheduleStrategyDataManager4ZK{
 		List<String> result = new ArrayList<String>();
 		for(ScheduleStrategy scheduleStrategy:loadAllScheduleStrategy()){
 			boolean isFind = false;
-			//ÔİÍ£»òÕß²»ÔÚIP·¶Î§
+			//æš‚åœæˆ–è€…ä¸åœ¨IPèŒƒå›´
 			if(ScheduleStrategy.STS_PAUSE.equalsIgnoreCase(scheduleStrategy.getSts()) == false &&  scheduleStrategy.getIPList() != null){
 				for(String ip:scheduleStrategy.getIPList()){
 					if(ip.equals("127.0.0.1") || ip.equalsIgnoreCase("localhost") || ip.equals(managerFactory.getIp())|| ip.equalsIgnoreCase(managerFactory.getHostName())){
-						//Ìí¼Ó¿É¹ÜÀíTaskType
+						//æ·»åŠ å¯ç®¡ç†TaskType
 						String zkPath =	this.PATH_Strategy+"/"+ scheduleStrategy.getStrategyName()+ "/"+ managerFactory.getUuid();
 						if(this.getZooKeeper().exists(zkPath, false)==null){
 							zkPath = this.getZooKeeper().create(zkPath, null, this.zkManager.getAcl(), CreateMode.EPHEMERAL);			
@@ -144,7 +142,7 @@ public class ScheduleStrategyDataManager4ZK{
 					}
 				}
 			}
-			if(isFind == false){//Çå³ıÔ­À´×¢²áµÄFactory
+			if(isFind == false){//æ¸…é™¤åŸæ¥æ³¨å†Œçš„Factory
 				String zkPath =	this.PATH_Strategy+"/"+ scheduleStrategy.getStrategyName()+ "/"+ managerFactory.getUuid();
 				if(this.getZooKeeper().exists(zkPath, false)!=null){
 					ZKTools.deleteTree(this.getZooKeeper(), zkPath);
@@ -155,7 +153,7 @@ public class ScheduleStrategyDataManager4ZK{
 		return result;
 	}
 	/**
-	 * ×¢Ïú·şÎñ£¬Í£Ö¹µ÷¶È
+	 * æ³¨é”€æœåŠ¡ï¼Œåœæ­¢è°ƒåº¦
 	 * @param managerFactory
 	 * @return
 	 * @throws Exception
@@ -177,13 +175,13 @@ public class ScheduleStrategyDataManager4ZK{
 				String valueString = new String(value);
 				result = (ScheduleStrategyRunntime) this.gson.fromJson(valueString, ScheduleStrategyRunntime.class);
 				if(null==result){
-					throw new Exception("gson ·´ĞòÁĞ»¯Òì³£,¶ÔÏóÎªnull");
+					throw new Exception("gson ååºåˆ—åŒ–å¼‚å¸¸,å¯¹è±¡ä¸ºnull");
 				}
 				if(null==result.getStrategyName()){
-					throw new Exception("gson ·´ĞòÁĞ»¯Òì³£,²ßÂÔÃû×ÖÎªnull");
+					throw new Exception("gson ååºåˆ—åŒ–å¼‚å¸¸,ç­–ç•¥åå­—ä¸ºnull");
 				}
 				if(null==result.getUuid()){
-					throw new Exception("gson ·´ĞòÁĞ»¯Òì³£,uuidÎªnull");
+					throw new Exception("gson ååºåˆ—åŒ–å¼‚å¸¸,uuidä¸ºnull");
 				}
 			}else{
 				result = new ScheduleStrategyRunntime();
@@ -197,7 +195,7 @@ public class ScheduleStrategyDataManager4ZK{
 	}
 	
 	/**
-	 * ×°ÔØËùÓĞµÄ²ßÂÔÔËĞĞ×´Ì¬
+	 * è£…è½½æ‰€æœ‰çš„ç­–ç•¥è¿è¡ŒçŠ¶æ€
 	 * @return
 	 * @throws Exception
 	 */
@@ -232,7 +230,7 @@ public class ScheduleStrategyDataManager4ZK{
 			return result;
 		}
 		List<String> uuidList = this.getZooKeeper().getChildren(zkPath + "/" + strategyName, false);
-		//ÅÅĞò
+		//æ’åº
 		Collections.sort(uuidList,new Comparator<String>(){
 			public int compare(String u1, String u2) {
 				return u1.substring(u1.lastIndexOf("$") + 1).compareTo(
@@ -246,8 +244,8 @@ public class ScheduleStrategyDataManager4ZK{
 		return result;
 	}
 	/**
-	 * ¸üĞÂÇëÇóÊıÁ¿
-	 * @param taskType
+	 * æ›´æ–°è¯·æ±‚æ•°é‡
+	 * @param strategyName
 	 * @param manangerFactoryUUID
 	 * @param requestNum
 	 * @throws KeeperException
@@ -270,7 +268,7 @@ public class ScheduleStrategyDataManager4ZK{
 		this.getZooKeeper().setData(zkPath,valueString.getBytes(),-1);
 	}
 	/**
-	 * ¸üĞÂµ÷¶È¹ı³ÌÖĞµÄĞÅÏ¢
+	 * æ›´æ–°è°ƒåº¦è¿‡ç¨‹ä¸­çš„ä¿¡æ¯
 	 * @param strategyName
 	 * @param manangerFactoryUUID
 	 * @param message
@@ -295,7 +293,7 @@ public class ScheduleStrategyDataManager4ZK{
 	public void updateManagerFactoryInfo(String uuid,boolean isStart) throws Exception {
 		String zkPath = this.PATH_ManagerFactory + "/" + uuid;
 		if(this.getZooKeeper().exists(zkPath, false)==null){
-			throw new Exception("ÈÎÎñ¹ÜÀíÆ÷²»´æÔÚ:" + uuid);
+			throw new Exception("ä»»åŠ¡ç®¡ç†å™¨ä¸å­˜åœ¨:" + uuid);
 		}
 		this.getZooKeeper().setData(zkPath,Boolean.toString(isStart).getBytes(),-1);
 	}
@@ -303,7 +301,7 @@ public class ScheduleStrategyDataManager4ZK{
 	public ManagerFactoryInfo loadManagerFactoryInfo(String uuid) throws Exception {
 		String zkPath = this.PATH_ManagerFactory + "/" + uuid;
 		if(this.getZooKeeper().exists(zkPath, false)==null){
-			throw new Exception("ÈÎÎñ¹ÜÀíÆ÷²»´æÔÚ:" + uuid);
+			throw new Exception("ä»»åŠ¡ç®¡ç†å™¨ä¸å­˜åœ¨:" + uuid);
 		}
 		byte[] value = this.getZooKeeper().getData(zkPath,false,null);
 		ManagerFactoryInfo result = new ManagerFactoryInfo();
@@ -317,7 +315,7 @@ public class ScheduleStrategyDataManager4ZK{
 	}
 	
 	/**
-	 * µ¼ÈëÅäÖÃĞÅÏ¢¡¾Ä¿Ç°Ö§³ÖbaseTaskTypeºÍstrategyÊı¾İ¡¿
+	 * å¯¼å…¥é…ç½®ä¿¡æ¯ã€ç›®å‰æ”¯æŒbaseTaskTypeå’Œstrategyæ•°æ®ã€‘
 	 * 
 	 * @param config
 	 * @param writer
@@ -333,22 +331,22 @@ public class ScheduleStrategyDataManager4ZK{
 			ZKTools.createPath(getZooKeeper(), path, CreateMode.PERSISTENT, zkManager.getAcl());
 			String y_node = path + "/" + configNode.getName();
 			if (getZooKeeper().exists(y_node, false) == null) {
-				writer.append("<font color=\"red\">³É¹¦µ¼ÈëĞÂÅäÖÃĞÅÏ¢\n</font>");
+				writer.append("<font color=\"red\">æˆåŠŸå¯¼å…¥æ–°é…ç½®ä¿¡æ¯\n</font>");
 				getZooKeeper().create(y_node, configNode.getValue().getBytes(),
 						zkManager.getAcl(), CreateMode.PERSISTENT);
 			} else if (isUpdate) {
-				writer.append("<font color=\"red\">¸ÃÅäÖÃĞÅÏ¢ÒÑ¾­´æÔÚ£¬²¢ÇÒÇ¿ÖÆ¸üĞÂÁË\n</font>");
+				writer.append("<font color=\"red\">è¯¥é…ç½®ä¿¡æ¯å·²ç»å­˜åœ¨ï¼Œå¹¶ä¸”å¼ºåˆ¶æ›´æ–°äº†\n</font>");
 				getZooKeeper().setData(y_node,
 						configNode.getValue().getBytes(), -1);
 			} else {
-				writer.append("<font color=\"red\">¸ÃÅäÖÃĞÅÏ¢ÒÑ¾­´æÔÚ£¬Èç¹ûĞèÒª¸üĞÂ£¬ÇëÅäÖÃÇ¿ÖÆ¸üĞÂ\n</font>");
+				writer.append("<font color=\"red\">è¯¥é…ç½®ä¿¡æ¯å·²ç»å­˜åœ¨ï¼Œå¦‚æœéœ€è¦æ›´æ–°ï¼Œè¯·é…ç½®å¼ºåˆ¶æ›´æ–°\n</font>");
 			}
 		}
 		writer.append(configNode.toString());
 	}
 
 	/**
-	 * Êä³öÅäÖÃĞÅÏ¢¡¾Ä¿Ç°±¸·İbaseTaskTypeºÍstrategyÊı¾İ¡¿
+	 * è¾“å‡ºé…ç½®ä¿¡æ¯ã€ç›®å‰å¤‡ä»½baseTaskTypeå’Œstrategyæ•°æ®ã€‘
 	 * 
 	 * @param rootPath
 	 * @param writer
@@ -359,9 +357,9 @@ public class ScheduleStrategyDataManager4ZK{
 		StringBuffer buffer = new StringBuffer();
 		for (String type : new String[] { "baseTaskType", "strategy" }) {
 			if (type.equals("baseTaskType")) {
-				writer.write("<h2>»ù±¾ÈÎÎñÅäÖÃÁĞ±í£º</h2>\n");
+				writer.write("<h2>åŸºæœ¬ä»»åŠ¡é…ç½®åˆ—è¡¨ï¼š</h2>\n");
 			} else {
-				writer.write("<h2>»ù±¾²ßÂÔÅäÖÃÁĞ±í£º</h2>\n");
+				writer.write("<h2>åŸºæœ¬ç­–ç•¥é…ç½®åˆ—è¡¨ï¼š</h2>\n");
 			}
 			String bTTypePath = rootPath + "/" + type;
 			List<String> fNodeList = getZooKeeper().getChildren(bTTypePath,
